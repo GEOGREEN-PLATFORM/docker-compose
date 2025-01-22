@@ -1,0 +1,31 @@
+services:
+  postgresql-geospatial-server:
+    image: postgres:16
+    hostname: postgresql-geospatial-server
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: geospatial-server
+      POSTGRES_USER: geospatial-server-username
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgresql-geospatial-server:/var/lib/postgresql-geospatial-server/data
+
+  geospatial-server:
+    image: ghcr.io/geogreen-platform/geospatial-server:latest
+    container_name: geospatial-server
+    pull_policy: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-geospatial-server:5432/geospatial-server
+    depends_on:
+      - postgresql-geospatial-server
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  postgresql-geospatial-server: { }
+
