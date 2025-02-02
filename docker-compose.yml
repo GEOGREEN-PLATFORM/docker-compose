@@ -16,11 +16,36 @@ services:
     container_name: geospatial-server
     pull_policy: always
     ports:
-      - "8080:8080"
+      - "8091:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-geospatial-server:5432/geospatial-server
     depends_on:
       - postgresql-geospatial-server
+
+  minio-service:
+    image: minio/minio
+    container_name: minio-service
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./data:/data
+      - ./config:/root/.minio
+
+  file-server:
+    image: ghcr.io/geogreen-platform/file-server:latest
+    container_name: file-server
+    pull_policy: always
+    ports:
+      - "8092:8080"
+    environment:
+      CLOUD_HOST: http://minio-service:9000
+    depends_on:
+      - minio-service
 
 networks:
   backend:
