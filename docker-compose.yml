@@ -53,9 +53,9 @@ services:
       - "3000:3000"   
     environment:
       NUXT_HOST: 0.0.0.0   
-      NUXT_PORTAL_HTTP_PROTOCOL: ${{ secrets.PORTAL_HTTP_PROTOCOL }
-      NUXT_PORTAL_API_HOST: ${{ secrets.PORTAL_API_HOST }
-      NUXT_PORTAL_PORT: ${{ secrets.PORTAL_PORT }
+      NUXT_PORTAL_HTTP_PROTOCOL: ${{ secrets.PORTAL_HTTP_PROTOCOL }}
+      NUXT_PORTAL_API_HOST: ${{ secrets.PORTAL_API_HOST }}
+      NUXT_PORTAL_PORT: ${{ secrets.PORTAL_PORT }}
 
 networks:
   backend:
