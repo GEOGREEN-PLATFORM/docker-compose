@@ -46,6 +46,16 @@ services:
       CLOUD_HOST: http://minio-service:9000
     depends_on:
       - minio-service
+  web-app:
+    image: ghcr.io/geogreen-platform/web-app:latest
+    container_name: web-app
+    ports:
+      - "3000:3000"  
+    environment:
+      NUXT_HOST: 0.0.0.0   
+      PORTAL_HTTP_PROTOCOL: http
+      PORTAL_API_HOST: localhost
+      PORTAL_PORT: '8091'
 
 networks:
   backend:
