@@ -50,12 +50,12 @@ services:
     image: ghcr.io/geogreen-platform/web-app:latest
     container_name: web-app
     ports:
-      - "3000:3000"   
+      - "3000:3000"  
     environment:
       NUXT_HOST: 0.0.0.0   
-      NUXT_PORTAL_HTTP_PROTOCOL: ${{ secrets.PORTAL_HTTP_PROTOCOL }}
-      NUXT_PORTAL_API_HOST: ${{ secrets.PORTAL_API_HOST }}
-      NUXT_PORTAL_PORT: ${{ secrets.PORTAL_PORT }}
+      PORTAL_HTTP_PROTOCOL: http
+      PORTAL_API_HOST: localhost
+      PORTAL_PORT: '8091'
 
 networks:
   backend:
