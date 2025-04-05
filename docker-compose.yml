@@ -60,10 +60,40 @@ services:
   photo-analyser:
     image: ghcr.io/geogreen-platform/photo-analysis:latest
     container_name: photo-analyser
+    pull_policy: always
     ports:
       - "8093:8080"
     environment:
       - SERVER_PORT=8080
+
+  postgresql-event-manager:
+    image: postgres:14.7-alpine
+    hostname: postgresql-event-manager
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: event_manager
+      POSTGRES_USER: event-manager-admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: md5
+    volumes:
+      - postgresql-event-manager:/var/lib/postgresql/data
+    command: [
+      "postgres",
+      "-c", "listen_addresses=*",
+      "-c", "password_encryption=md5"
+    ]
+
+  event-manager:
+    image: ghcr.io/geogreen-platform/event-manager:latest
+    container_name: event-manager
+    pull_policy: always
+    ports:
+      - "8094:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-event-manager:5432/event_manager
+    depends_on:
+      - postgresql-event-manager
 
 networks:
   backend:
@@ -71,4 +101,5 @@ networks:
 
 volumes:
   postgresql-geospatial-server: { }
+  postgresql-event-manager: { }
 
