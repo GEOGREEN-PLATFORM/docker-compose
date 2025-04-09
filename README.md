@@ -9,7 +9,7 @@
 * msa event-manager http://localhost:8094/swagger-ui/index.html
 * msa collect-user-markers http://localhost:8095/swagger-ui/index.html
 * keycloak http://localhost:8096
-* msa http://localhost:8097/swagger-ui/index.html
+* msa keycloak-auth-service http://localhost:8097/swagger-ui/index.html
 
 ## Веб-интерфейс
 * http://localhost:3000
