@@ -103,7 +103,7 @@ services:
     image: postgres:14.7-alpine
     hostname: postgresql-collected-user-markers
     ports:
-      - "5434:5432"
+      - "5437:5435"
     environment:
       POSTGRES_DB: collected_user_markers
       POSTGRES_USER: collected-user-marker-admin
@@ -157,6 +157,8 @@ services:
       KC_DB_USERNAME: postgresql-keycloak-username
       KC_DB_PASSWORD: password
       KC_DB: postgres
+      QUARKUS_HTTP_CORS: "true"
+      QUARKUS_HTTP_CORS_ORIGINS: "*"
     depends_on:
       - postgresql-keycloak
 
