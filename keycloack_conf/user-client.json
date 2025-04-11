@@ -9,12 +9,11 @@
   "enabled": true,
   "alwaysDisplayInConsole": false,
   "clientAuthenticatorType": "client-secret",
-  "secret": "mw1z9Px6SYajCu0mkoUqWvBSFCf9WRDc",
   "redirectUris": [
     "/*"
   ],
   "webOrigins": [
-    "/*"
+    "*"
   ],
   "notBefore": 0,
   "bearerOnly": false,
@@ -23,7 +22,6 @@
   "implicitFlowEnabled": true,
   "directAccessGrantsEnabled": true,
   "serviceAccountsEnabled": false,
-  "authorizationServicesEnabled": false,
   "publicClient": true,
   "frontchannelLogout": true,
   "protocol": "openid-connect",
@@ -34,7 +32,7 @@
     "use.jwks.url": "false",
     "backchannel.logout.revoke.offline.tokens": "false",
     "use.refresh.tokens": "true",
-    "oidc.ciba.grant.enabled": false,
+    "oidc.ciba.grant.enabled": "false",
     "client.use.lightweight.access.token.enabled": "false",
     "backchannel.logout.session.required": "true",
     "client_credentials.use_refresh_token": "false",
@@ -114,5 +112,6 @@
     "view": true,
     "configure": true,
     "manage": true
-  }
+  },
+  "authorizationServicesEnabled": false
 }

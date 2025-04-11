@@ -8,5 +8,9 @@
 ![img_3.png](img_3.png)
 Загрузить файл `user-client.json` и в поле `Client ID` написать `user-client` 
 
+## Создать роли в client 
+![img_5.png](img_5.png)
+
 ## Запросить токен 
 ![img_4.png](img_4.png)
+
