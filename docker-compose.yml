@@ -19,6 +19,7 @@ services:
       - "8091:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-geospatial-server:5432/geospatial-server
+      KEYCLOAK_URL: http://keycloak:8080
     depends_on:
       - postgresql-geospatial-server
 
@@ -56,7 +57,10 @@ services:
       NUXT_HOST: 0.0.0.0   
       PORTAL_HTTP_PROTOCOL: http
       PORTAL_API_HOST: localhost
-      PORTAL_PORT: '8091'
+      PORTAL_PORT_GEOSPATIAL: '8091'
+      PORTAL_PORT_FILE_SERVER: '8092'
+      PORTAL_PORT_PHOTO_ANALYSE: '8093'
+      PORTAL_PORT_USER_REPORT: '8095'
 
   photo-analyser:
     image: ghcr.io/geogreen-platform/photo-analysis:latest
@@ -102,7 +106,7 @@ services:
     image: postgres:14.7-alpine
     hostname: postgresql-collected-user-markers
     ports:
-      - "5434:5432"
+      - "5437:5435"
     environment:
       POSTGRES_DB: collected_user_markers
       POSTGRES_USER: collected-user-marker-admin
@@ -129,6 +133,64 @@ services:
     depends_on:
       - postgresql-collected-user-markers
 
+  postgresql-keycloak:
+    image: postgres:16
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_USER: postgresql-keycloak-username
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: postgresql-keycloak
+    volumes:
+      - postgresql-keycloak:/var/lib/postgresql-keycloak/data
+
+  keycloak:
+    command: start-dev
+    image: quay.io/keycloak/keycloak:25.0.0
+    ports:
+      - "8096:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_HOSTNAME: localhost
+      KC_DB_URL_PROPERTIES: '?ssl=disable'
+      KC_DB_URL_HOST: postgresql-keycloak
+      KC_DB_URL_DATABASE: postgresql-keycloak
+      KC_DB_USERNAME: postgresql-keycloak-username
+      KC_DB_PASSWORD: password
+      KC_DB: postgres
+      QUARKUS_HTTP_CORS: "true"
+      QUARKUS_HTTP_CORS_ORIGINS: "*"
+    depends_on:
+      - postgresql-keycloak
+
+  postgresql-user-server:
+    image: postgres:16
+    hostname: postgres
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: user-server
+      POSTGRES_USER: user-server-username
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgresql-user-server:/var/lib/postgresql-geospatial-server/data
+
+  keycloak-auth-service:
+    image: ghcr.io/geogreen-platform/keycloak-auth-service:latest
+    container_name: keycloak-auth-service
+    pull_policy: always
+    ports:
+      - "8097:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/user-server
+      SPRING_DATASOURCE_USERNAME: user-server-username
+      SPRING_DATASOURCE_PASSWORD: password
+      KEYCLOAK_URL: http://keycloak:8080
+    depends_on:
+      - postgresql-user-server
+
 networks:
   backend:
     external: true
@@ -137,4 +199,6 @@ volumes:
   postgresql-geospatial-server: { }
   postgresql-event-manager: { }
   postgresql-collected-user-markers: { }
+  postgresql-keycloak: { }
+  postgresql-user-server: { }
 
