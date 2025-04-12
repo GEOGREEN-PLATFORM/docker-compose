@@ -106,7 +106,7 @@ services:
     image: postgres:14.7-alpine
     hostname: postgresql-collected-user-markers
     ports:
-      - "5437:5435"
+      - "5437:5432"
     environment:
       POSTGRES_DB: collected_user_markers
       POSTGRES_USER: collected-user-marker-admin
