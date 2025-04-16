@@ -72,6 +72,8 @@ services:
       SERVER_PORT: "8080"
       FILE_SERVER_HOST: "http://file-server"
       FILE_SERVER_PORT: "8080"
+      KEYCLOAK_URL: "http://keycloak:8080"
+
 
   postgresql-event-manager:
     image: postgres:14.7-alpine
@@ -99,6 +101,8 @@ services:
       - "8094:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-event-manager:5432/event_manager
+      KEYCLOAK_URL: "http://keycloak:8080"
+      SERVER_PORT: "8080"
     depends_on:
       - postgresql-event-manager
 
@@ -130,6 +134,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-collected-user-markers:5432/collected_user_markers
       PHOTO_ANALYSE_HOST: "http://photo-analyser"
       PHOTO_ANALYSE_PORT: "8080"
+      KEYCLOAK_URL: "http://keycloak:8080"
     depends_on:
       - postgresql-collected-user-markers
 
