@@ -61,6 +61,8 @@ services:
       PORTAL_PORT_FILE_SERVER: '8092'
       PORTAL_PORT_PHOTO_ANALYSE: '8093'
       PORTAL_PORT_USER_REPORT: '8095'
+      PORTAL_PORT_KEYCLOAK: '8096'
+      PORTAL_PORT_AUTH: '8097'
 
   photo-analyser:
     image: ghcr.io/geogreen-platform/photo-analysis:0.2.0
