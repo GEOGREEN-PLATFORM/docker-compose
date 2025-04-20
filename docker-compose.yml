@@ -63,7 +63,7 @@ services:
       PORTAL_PORT_USER_REPORT: '8095'
 
   photo-analyser:
-    image: ghcr.io/geogreen-platform/photo-analysis:latest
+    image: ghcr.io/geogreen-platform/photo-analysis:0.2.0
     container_name: photo-analyser
     pull_policy: always
     ports:
@@ -73,6 +73,7 @@ services:
       FILE_SERVER_HOST: "http://file-server"
       FILE_SERVER_PORT: "8080"
       KEYCLOAK_URL: "http://keycloak:8080"
+      KAFKA_BOOTSTRAP_SERVERS: "http://kafka-broker:9092"
 
 
   postgresql-event-manager:
@@ -94,7 +95,7 @@ services:
     ]
 
   event-manager:
-    image: ghcr.io/geogreen-platform/event-manager:latest
+    image: ghcr.io/geogreen-platform/event-manager:0.2.0
     container_name: event-manager
     pull_policy: always
     ports:
@@ -125,7 +126,7 @@ services:
     ]
 
   collect-user-marker:
-    image: ghcr.io/geogreen-platform/collect-user-marker:latest
+    image: ghcr.io/geogreen-platform/collect-user-marker:0.2.0
     container_name: collect-user-marker
     pull_policy: always
     ports:
@@ -135,6 +136,7 @@ services:
       PHOTO_ANALYSE_HOST: "http://photo-analyser"
       PHOTO_ANALYSE_PORT: "8080"
       KEYCLOAK_URL: "http://keycloak:8080"
+      KAFKA_BOOTSTRAP_SERVERS: "http://kafka-broker:9092"
     depends_on:
       - postgresql-collected-user-markers
 
@@ -196,6 +198,42 @@ services:
     depends_on:
       - postgresql-user-server
 
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    container_name: kafka-broker
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    ports:
+      - "29092:29092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: [ "CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zk-data:/var/lib/zookeeper/data
+      - zk-logs:/var/lib/zookeeper/log
+
 networks:
   backend:
     external: true
@@ -206,4 +244,7 @@ volumes:
   postgresql-collected-user-markers: { }
   postgresql-keycloak: { }
   postgresql-user-server: { }
+  zk-data: { }
+  zk-logs: { }
+  kafka-data: { }
 
