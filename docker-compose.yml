@@ -56,13 +56,12 @@ services:
     environment:
       NUXT_HOST: 0.0.0.0   
       PORTAL_HTTP_PROTOCOL: http
-      PORTAL_API_HOST: localhost
-      PORTAL_PORT_GEOSPATIAL: '8091'
-      PORTAL_PORT_FILE_SERVER: '8092'
-      PORTAL_PORT_PHOTO_ANALYSE: '8093'
-      PORTAL_PORT_USER_REPORT: '8095'
-      PORTAL_PORT_KEYCLOAK: '8096'
-      PORTAL_PORT_AUTH: '8097'
+      PORTAL_API_GEOSPATIAL: 'localhost:8091'
+      PORTAL_API_FILE_SERVER: 'localhost:8092'
+      PORTAL_API_PHOTO_ANALYSE: 'localhost:8093'
+      PORTAL_API_USER_REPORT: 'localhost:8095'
+      PORTAL_API_KEYCLOAK: 'localhost:8096'
+      PORTAL_API_AUTH: 'localhost:8097'
 
   photo-analyser:
     image: ghcr.io/geogreen-platform/photo-analysis:0.2.0
