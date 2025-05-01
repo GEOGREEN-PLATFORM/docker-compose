@@ -19,7 +19,7 @@ services:
       - "8091:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-geospatial-server:5432/geospatial-server
-      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_URL: http://217.198.13.249:30096
     depends_on:
       - postgresql-geospatial-server
 
@@ -102,6 +102,7 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-event-manager:5432/event_manager
       KEYCLOAK_URL: "http://keycloak:8080"
+      USER_SERVICE_HOST: "http://keycloak-auth-service:8080"
     depends_on:
       - postgresql-event-manager
 
@@ -134,6 +135,7 @@ services:
       PHOTO_ANALYSE_HOST: "http://photo-analyser:8080"
       KEYCLOAK_URL: "http://keycloak:8080"
       KAFKA_BOOTSTRAP_SERVERS: "http://kafka-broker:9092"
+      USER_SERVICE_HOST: "http://keycloak-auth-service:8080"
     depends_on:
       - postgresql-collected-user-markers
 
