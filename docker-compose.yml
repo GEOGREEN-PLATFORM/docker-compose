@@ -61,6 +61,7 @@ services:
       PORTAL_API_PHOTO_ANALYSE: 'localhost:8093'
       PORTAL_API_USER_REPORT: 'localhost:8095'
       PORTAL_API_KEYCLOAK: 'localhost:8096'
+      PORTAL_API_EVENT_MANAGER: 'localhost:8094'
       PORTAL_API_AUTH: 'localhost:8097'
 
   photo-analyser:
