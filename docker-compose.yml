@@ -65,7 +65,7 @@ services:
       PORTAL_API_AUTH: 'localhost:8097'
 
   photo-analyser:
-    image: ghcr.io/geogreen-platform/photo-analysis:0.2.0
+    image: ghcr.io/geogreen-platform/photo-analysis:latest
     container_name: photo-analyser
     pull_policy: always
     ports:
@@ -95,7 +95,7 @@ services:
     ]
 
   event-manager:
-    image: ghcr.io/geogreen-platform/event-manager:0.2.0
+    image: ghcr.io/geogreen-platform/event-manager:latest
     container_name: event-manager
     pull_policy: always
     ports:
@@ -126,7 +126,7 @@ services:
     ]
 
   collect-user-marker:
-    image: ghcr.io/geogreen-platform/collect-user-marker:0.2.0
+    image: ghcr.io/geogreen-platform/collect-user-marker:latest
     container_name: collect-user-marker
     pull_policy: always
     ports:
