@@ -61,10 +61,11 @@ services:
       PORTAL_API_PHOTO_ANALYSE: 'localhost:8093'
       PORTAL_API_USER_REPORT: 'localhost:8095'
       PORTAL_API_KEYCLOAK: 'localhost:8096'
+      PORTAL_API_EVENT_MANAGER: 'localhost:8094'
       PORTAL_API_AUTH: 'localhost:8097'
 
   photo-analyser:
-    image: ghcr.io/geogreen-platform/photo-analysis:0.2.0
+    image: ghcr.io/geogreen-platform/photo-analysis:latest
     container_name: photo-analyser
     pull_policy: always
     ports:
@@ -103,7 +104,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-event-manager:5432/event_manager
       KEYCLOAK_URL: "http://keycloak:8080"
       USER_SERVICE_HOST: "http://keycloak-auth-service:8080"
-      KAFKA_BOOTSTRAP_SERVERS: "http://kafka-broker:9092"
     depends_on:
       - postgresql-event-manager
 
@@ -233,6 +233,21 @@ services:
     volumes:
       - zk-data:/var/lib/zookeeper/data
       - zk-logs:/var/lib/zookeeper/log
+
+  api-gateway:
+    image: ghcr.io/geogreen-platform/api-gateway:latest
+    container_name: api-gateway
+    pull_policy: always
+    ports:
+      - "8098:8080"
+    environment:
+      KEYCLOAK_HOST: "http://keycloak:8080"
+      GEOSPATIAL_SERVER_HOST: "http://geospatial-server:8080"
+      USER_SERVER_HOST: "http://keycloak-auth-service:8080"
+      FILE_SERVER_HOST: "http://file-server:8080"
+      COLLECT_USER_DATA_HOST: "http://collect-user-marker:8080"
+      EVENT_MANAGER_SERVER_HOST: "http://event-manager:8080"
+      PHOTO_ANALYSER_SERVER_HOST: "http://photo-analyser:8080"
 
   kafka-ui:
     container_name: kafka-ui
