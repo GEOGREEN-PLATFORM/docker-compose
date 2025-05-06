@@ -103,6 +103,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-event-manager:5432/event_manager
       KEYCLOAK_URL: "http://keycloak:8080"
       USER_SERVICE_HOST: "http://keycloak-auth-service:8080"
+      KAFKA_BOOTSTRAP_SERVERS: "http://kafka-broker:9092"
     depends_on:
       - postgresql-event-manager
 
@@ -232,6 +233,17 @@ services:
     volumes:
       - zk-data:/var/lib/zookeeper/data
       - zk-logs:/var/lib/zookeeper/log
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8082:8080
+    environment:
+      DYNAMIC_CONFIG_ENABLED: true
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
 
 networks:
   backend:
