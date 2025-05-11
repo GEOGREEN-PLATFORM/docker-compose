@@ -251,6 +251,8 @@ services:
       COLLECT_USER_DATA_HOST: "http://collect-user-marker:8080"
       EVENT_MANAGER_SERVER_HOST: "http://event-manager:8080"
       PHOTO_ANALYSER_SERVER_HOST: "http://photo-analyser:8080"
+      REPORT_SERVER_HOST: "http://report-server:8080"
+      NOTIFICATION_SERVER_HOST: "http://notification-server:8080"
 
   kafka-ui:
     container_name: kafka-ui
