@@ -129,7 +129,7 @@ services:
     ]
 
   collect-user-marker:
-    image: ghcr.io/geogreen-platform/collect-user-marker:0.2.0
+    image: ghcr.io/geogreen-platform/collect-user-marker:latest
     container_name: collect-user-marker
     pull_policy: always
     ports:
@@ -293,6 +293,39 @@ services:
     depends_on:
       - postgresql-notification-server
 
+  postgresql-report-server:
+    image: postgres:14.7-alpine
+    hostname: postgresql-report-server
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_DB: reports
+      POSTGRES_USER: reports-admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: md5
+    volumes:
+      - postgresql-report-server:/var/lib/postgresql/data
+    command: [
+      "postgres",
+      "-c", "listen_addresses=*",
+      "-c", "password_encryption=md5"
+    ]
+
+  report-server:
+    image: ghcr.io/geogreen-platform/report-server:latest
+    container_name: report-server
+    pull_policy: always
+    ports:
+      - "8100:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-report-server:5432/reports
+      KEYCLOAK_URL: "http://217.198.13.249:30096"
+      GEOSPATIAL_SERVER_HOST: "http://217.198.13.249:30091"
+      EVENT_MANAGER_HOST: "http://217.198.13.249:30094/"
+      FILE_SERVER_HOST: "http://217.198.13.249:30092"
+    depends_on:
+      - postgresql-event-manager
+
 networks:
   backend:
     external: true
@@ -307,4 +340,5 @@ volumes:
   zk-logs: { }
   kafka-data: { }
   postgresql-notification-server: { }
+  postgresql-report-server: {}
 
