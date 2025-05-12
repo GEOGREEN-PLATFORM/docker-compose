@@ -98,7 +98,7 @@ services:
     ]
 
   event-manager:
-    image: ghcr.io/geogreen-platform/event-manager:0.2.0
+    image: ghcr.io/geogreen-platform/event-manager:latest
     container_name: event-manager
     pull_policy: always
     ports:
@@ -251,8 +251,6 @@ services:
       COLLECT_USER_DATA_HOST: "http://collect-user-marker:8080"
       EVENT_MANAGER_SERVER_HOST: "http://event-manager:8080"
       PHOTO_ANALYSER_SERVER_HOST: "http://photo-analyser:8080"
-      REPORT_SERVER_HOST: "http://report-server:8080"
-      NOTIFICATION_SERVER_HOST: "http://notification-server:8080"
 
   kafka-ui:
     container_name: kafka-ui
@@ -265,41 +263,11 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker:9092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
 
-  postgresql-notification-server:
-    image: postgres:16
-    hostname: postgres
-    ports:
-      - "5436:5432"
-    environment:
-      POSTGRES_DB: notification-server
-      POSTGRES_USER: notification-server-username
-      POSTGRES_PASSWORD: password
-    volumes:
-      - postgresql-notification-server:/var/lib/postgresql-notification-server/data
-
-  notification-server:
-    image: ghcr.io/geogreen-platform/notification-server:latest
-    container_name: notification-server
-    pull_policy: always
-    ports:
-      - "8099:8080"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-notification-server:5432/notification-server
-      SPRING_DATASOURCE_USERNAME: notification-server-username
-      SPRING_DATASOURCE_PASSWORD: password
-      KEYCLOAK_URL: http://keycloak:8080
-      KAFKA_BOOTSTRAP_SERVERS: http://kafka-broker:9092
-#      указать при запуске
-#      MAIL_USERNAME: "your-mail"
-#      MAIL_PASSWORD: "your-password"
-    depends_on:
-      - postgresql-notification-server
-
   postgresql-report-server:
     image: postgres:14.7-alpine
     hostname: postgresql-report-server
     ports:
-      - "5437:5432"
+      - "5438:5432"
     environment:
       POSTGRES_DB: reports
       POSTGRES_USER: reports-admin
@@ -318,13 +286,13 @@ services:
     container_name: report-server
     pull_policy: always
     ports:
-      - "8100:8080"
+      - "8099:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-report-server:5432/reports
-      KEYCLOAK_URL: "http://217.198.13.249:30096"
-      GEOSPATIAL_SERVER_HOST: "http://217.198.13.249:30091"
-      EVENT_MANAGER_HOST: "http://217.198.13.249:30094/"
-      FILE_SERVER_HOST: "http://217.198.13.249:30092"
+      KEYCLOAK_URL: "http://keycloak:8080"
+      GEOSPATIAL_SERVER_HOST: "http://geospatial-server:8080"
+      EVENT_MANAGER_HOST: "http://event-manager:8080"
+      FILE_SERVER_HOST: "http://file-server:8080"
     depends_on:
       - postgresql-event-manager
 
@@ -341,6 +309,5 @@ volumes:
   zk-data: { }
   zk-logs: { }
   kafka-data: { }
-  postgresql-notification-server: { }
   postgresql-report-server: {}
 
