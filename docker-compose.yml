@@ -292,6 +292,36 @@ services:
     depends_on:
       - postgresql-event-manager
 
+  postgresql-notification-server:
+    image: postgres:16
+    hostname: postgres
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_DB: notification-server
+      POSTGRES_USER: notification-server-username
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgresql-notification-server:/var/lib/postgresql-notification-server/data
+
+  notification-server:
+    image: ghcr.io/geogreen-platform/notification-server:latest
+    container_name: notification-server
+    pull_policy: always
+    ports:
+      - "8099:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-notification-server:5432/notification-server
+      SPRING_DATASOURCE_USERNAME: notification-server-username
+      SPRING_DATASOURCE_PASSWORD: password
+      KEYCLOAK_URL: http://keycloak:8080
+      KAFKA_BOOTSTRAP_SERVERS: http://kafka-broker:9092
+    #      указать при запуске
+    #      MAIL_USERNAME: "your-mail"
+    #      MAIL_PASSWORD: "your-password"
+    depends_on:
+      - postgresql-notification-server
+
 networks:
   backend:
     external: true
