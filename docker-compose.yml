@@ -338,4 +338,5 @@ volumes:
   zk-logs: { }
   kafka-data: { }
   postgresql-report-server: {}
+  postgresql-notification-server: { }
 
