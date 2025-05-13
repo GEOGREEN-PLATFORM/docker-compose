@@ -62,6 +62,8 @@ services:
       PORTAL_API_HOST: 'localhost'
       PORTAL_API_PORT: '8098'
       NODE_OPTIONS: '--import=/app/.output/server/sentry.server.config.mjs'
+    #      указать при запуске
+    #      SENTRY_AUTH_TOKEN: "app-sentry-auth-token"
       
   photo-analyser:
     image: ghcr.io/geogreen-platform/photo-analysis:latest
