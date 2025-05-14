@@ -105,6 +105,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-event-manager:5432/event_manager
       KEYCLOAK_URL: "http://keycloak:8080"
       USER_SERVICE_HOST: "http://keycloak-auth-service:8080"
+      GEOSPATIAL_SERVER_HOST: "http://geospatial-server:8080"
     depends_on:
       - postgresql-event-manager
 
