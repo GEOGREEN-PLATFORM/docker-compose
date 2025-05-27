@@ -106,6 +106,7 @@ services:
       KEYCLOAK_URL: "http://keycloak:8080"
       USER_SERVICE_HOST: "http://keycloak-auth-service:8080"
       GEOSPATIAL_SERVER_HOST: "http://geospatial-server:8080"
+      KAFKA_UPDATE_TOPIC: "update-element"
     depends_on:
       - postgresql-event-manager
 
@@ -139,6 +140,8 @@ services:
       KEYCLOAK_URL: "http://keycloak:8080"
       KAFKA_BOOTSTRAP_SERVERS: "http://kafka-broker:9092"
       USER_SERVICE_HOST: "http://keycloak-auth-service:8080"
+      KAFKA_UPDATE_TOPIC: "update-element"
+      GEOSPATIAL_SERVER_HOST: "http://geospatial-server:8080"
     depends_on:
       - postgresql-collected-user-markers
 
