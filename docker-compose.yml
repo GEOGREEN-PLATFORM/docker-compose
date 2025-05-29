@@ -1,0 +1,348 @@
+services:
+  postgresql-geospatial-server:
+    image: postgres:16
+    hostname: postgresql-geospatial-server
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: geospatial-server
+      POSTGRES_USER: geospatial-server-username
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgresql-geospatial-server:/var/lib/postgresql-geospatial-server/data
+
+  geospatial-server:
+    image: ghcr.io/geogreen-platform/geospatial-server:latest
+    container_name: geospatial-server
+    pull_policy: always
+    ports:
+      - "8091:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-geospatial-server:5432/geospatial-server
+      SPRING_DATASOURCE_USERNAME: geospatial-server-username
+      SPRING_DATASOURCE_PASSWORD: password
+      KEYCLOAK_URL: "http://keycloak:8080"
+      KAFKA_BOOTSTRAP_SERVERS: http://kafka-broker:9092
+    depends_on:
+      - postgresql-geospatial-server
+
+  minio-service:
+    image: minio/minio
+    container_name: minio-service
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./data:/data
+      - ./config:/root/.minio
+
+  file-server:
+    image: ghcr.io/geogreen-platform/file-server:latest
+    container_name: file-server
+    pull_policy: always
+    ports:
+      - "8092:8080"
+    environment:
+      CLOUD_HOST: http://minio-service:9000
+    depends_on:
+      - minio-service
+
+  web-app:
+    image: ghcr.io/geogreen-platform/web-app:latest
+    container_name: web-app
+    ports:
+      - "3000:3000"  
+    environment:
+      NUXT_HOST: 0.0.0.0   
+      PORTAL_HTTP_PROTOCOL: http
+      PORTAL_API_HOST: 'localhost'
+      PORTAL_API_PORT: '8098'
+      NODE_OPTIONS: '--import=/app/.output/server/sentry.server.config.mjs'
+    #      указать при запуске
+    #      SENTRY_AUTH_TOKEN: "app-sentry-auth-token"
+      
+  photo-analyser:
+    image: ghcr.io/geogreen-platform/photo-analysis:latest
+    container_name: photo-analyser
+    pull_policy: always
+    ports:
+      - "8093:8080"
+    environment:
+      FILE_SERVER_HOST: "http://file-server:8080"
+      KEYCLOAK_URL: "http://keycloak:8080"
+      KAFKA_BOOTSTRAP_SERVERS: "http://kafka-broker:9092"
+
+
+  postgresql-event-manager:
+    image: postgres:14.7-alpine
+    hostname: postgresql-event-manager
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: event_manager
+      POSTGRES_USER: event-manager-admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: md5
+    volumes:
+      - postgresql-event-manager:/var/lib/postgresql/data
+    command: [
+      "postgres",
+      "-c", "listen_addresses=*",
+      "-c", "password_encryption=md5"
+    ]
+
+  event-manager:
+    image: ghcr.io/geogreen-platform/event-manager:latest
+    container_name: event-manager
+    pull_policy: always
+    ports:
+      - "8094:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-event-manager:5432/event_manager
+      KEYCLOAK_URL: "http://keycloak:8080"
+      USER_SERVICE_HOST: "http://keycloak-auth-service:8080"
+      GEOSPATIAL_SERVER_HOST: "http://geospatial-server:8080"
+      KAFKA_UPDATE_TOPIC: "update-element"
+    depends_on:
+      - postgresql-event-manager
+
+  postgresql-collected-user-markers:
+    image: postgres:14.7-alpine
+    hostname: postgresql-collected-user-markers
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_DB: collected_user_markers
+      POSTGRES_USER: collected-user-marker-admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: md5
+    volumes:
+      - postgresql-collected-user-markers:/var/lib/postgresql/data
+    command: [
+      "postgres",
+      "-c", "listen_addresses=*",
+      "-c", "password_encryption=md5"
+    ]
+
+  collect-user-marker:
+    image: ghcr.io/geogreen-platform/collect-user-marker:latest
+    container_name: collect-user-marker
+    pull_policy: always
+    ports:
+      - "8095:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-collected-user-markers:5432/collected_user_markers
+      PHOTO_ANALYSE_HOST: "http://photo-analyser:8080"
+      KEYCLOAK_URL: "http://keycloak:8080"
+      KAFKA_BOOTSTRAP_SERVERS: "http://kafka-broker:9092"
+      USER_SERVICE_HOST: "http://keycloak-auth-service:8080"
+      KAFKA_UPDATE_TOPIC: "update-element"
+      GEOSPATIAL_SERVER_HOST: "http://geospatial-server:8080"
+    depends_on:
+      - postgresql-collected-user-markers
+
+  postgresql-keycloak:
+    image: postgres:16
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_USER: postgresql-keycloak-username
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: postgresql-keycloak
+    volumes:
+      - postgresql-keycloak:/var/lib/postgresql-keycloak/data
+
+  keycloak:
+    command: start-dev
+    image: quay.io/keycloak/keycloak:25.0.0
+    ports:
+      - "8096:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_HOSTNAME: localhost
+      KC_DB_URL_PROPERTIES: '?ssl=disable'
+      KC_DB_URL_HOST: postgresql-keycloak
+      KC_DB_URL_DATABASE: postgresql-keycloak
+      KC_DB_USERNAME: postgresql-keycloak-username
+      KC_DB_PASSWORD: password
+      KC_DB: postgres
+      QUARKUS_HTTP_CORS: "true"
+      QUARKUS_HTTP_CORS_ORIGINS: "*"
+    depends_on:
+      - postgresql-keycloak
+
+  postgresql-user-server:
+    image: postgres:16
+    hostname: postgres
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: user-server
+      POSTGRES_USER: user-server-username
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgresql-user-server:/var/lib/postgresql-geospatial-server/data
+
+  keycloak-auth-service:
+    image: ghcr.io/geogreen-platform/keycloak-auth-service:latest
+    container_name: keycloak-auth-service
+    pull_policy: always
+    ports:
+      - "8097:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/user-server
+      SPRING_DATASOURCE_USERNAME: user-server-username
+      SPRING_DATASOURCE_PASSWORD: password
+      KEYCLOAK_URL: http://keycloak:8080
+    depends_on:
+      - postgresql-user-server
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    container_name: kafka-broker
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    ports:
+      - "29092:29092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: [ "CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zk-data:/var/lib/zookeeper/data
+      - zk-logs:/var/lib/zookeeper/log
+
+  api-gateway:
+    image: ghcr.io/geogreen-platform/api-gateway:latest
+    container_name: api-gateway
+    pull_policy: always
+    ports:
+      - "8098:8080"
+    environment:
+      KEYCLOAK_HOST: "http://keycloak:8080"
+      GEOSPATIAL_SERVER_HOST: "http://geospatial-server:8080"
+      USER_SERVER_HOST: "http://keycloak-auth-service:8080"
+      FILE_SERVER_HOST: "http://file-server:8080"
+      COLLECT_USER_DATA_HOST: "http://collect-user-marker:8080"
+      EVENT_MANAGER_SERVER_HOST: "http://event-manager:8080"
+      PHOTO_ANALYSER_SERVER_HOST: "http://photo-analyser:8080"
+      REPORT_SERVER_HOST: "http://report-server:8080"
+      NOTIFICATION_SERVER_HOST: "http://notification-server:8080"
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8082:8080
+    environment:
+      DYNAMIC_CONFIG_ENABLED: true
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+
+  postgresql-report-server:
+    image: postgres:14.7-alpine
+    hostname: postgresql-report-server
+    ports:
+      - "5438:5432"
+    environment:
+      POSTGRES_DB: reports
+      POSTGRES_USER: reports-admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: md5
+    volumes:
+      - postgresql-report-server:/var/lib/postgresql/data
+    command: [
+      "postgres",
+      "-c", "listen_addresses=*",
+      "-c", "password_encryption=md5"
+    ]
+
+  report-server:
+    image: ghcr.io/geogreen-platform/report-server:latest
+    container_name: report-server
+    pull_policy: always
+    ports:
+      - "8100:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-report-server:5432/reports
+      KEYCLOAK_URL: "http://keycloak:8080"
+      GEOSPATIAL_SERVER_HOST: "http://geospatial-server:8080"
+      EVENT_MANAGER_HOST: "http://event-manager:8080"
+      FILE_SERVER_HOST: "http://file-server:8080"
+    depends_on:
+      - postgresql-event-manager
+
+  postgresql-notification-server:
+    image: postgres:16
+    hostname: postgres
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_DB: notification-server
+      POSTGRES_USER: notification-server-username
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgresql-notification-server:/var/lib/postgresql-notification-server/data
+
+  notification-server:
+    image: ghcr.io/geogreen-platform/notification-server:latest
+    container_name: notification-server
+    pull_policy: always
+    ports:
+      - "8099:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-notification-server:5432/notification-server
+      SPRING_DATASOURCE_USERNAME: notification-server-username
+      SPRING_DATASOURCE_PASSWORD: password
+      KEYCLOAK_URL: http://keycloak:8080
+      KAFKA_BOOTSTRAP_SERVERS: http://kafka-broker:9092
+    #      указать при запуске
+    #      MAIL_USERNAME: "your-mail"
+    #      MAIL_PASSWORD: "your-password"
+    depends_on:
+      - postgresql-notification-server
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  postgresql-geospatial-server: { }
+  postgresql-event-manager: { }
+  postgresql-collected-user-markers: { }
+  postgresql-keycloak: { }
+  postgresql-user-server: { }
+  zk-data: { }
+  zk-logs: { }
+  kafka-data: { }
+  postgresql-report-server: {}
+  postgresql-notification-server: { }
+
